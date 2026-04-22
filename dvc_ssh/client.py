@@ -95,7 +95,10 @@ class InteractiveSSHClient(SSHClient):
                     pass
         raise KeyImportError("Incorrect passphrase")
 
-    def kbdint_auth_requested(self) -> str:
+    def kbdint_auth_requested(self):
+        if self._conn._options.password is not None:
+            return NotImplemented
+
         return ""
 
     async def kbdint_challenge_received(
