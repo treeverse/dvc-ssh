@@ -7,6 +7,7 @@ from dvc.testing.cloud import Cloud
 from dvc.testing.path_info import URLInfo
 
 TEST_SSH_USER = "user"
+TEST_SSH_PASSWORD = "password"
 TEST_SSH_KEY_PATH = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), f"{TEST_SSH_USER}.key"
 )
