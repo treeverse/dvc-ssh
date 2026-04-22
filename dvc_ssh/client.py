@@ -96,6 +96,8 @@ class InteractiveSSHClient(SSHClient):
         raise KeyImportError("Incorrect passphrase")
 
     def kbdint_auth_requested(self):
+        # Let asyncssh handle password-backed keyboard-interactive auth so it
+        # can reuse a configured password instead of triggering our prompt path.
         if self._conn._options.password is not None:
             return NotImplemented
 
