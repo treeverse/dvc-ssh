@@ -15,9 +15,13 @@ def test_keyfile_set(ssh_server, mocker):
 
 
 def test_password_set(ssh_server, mocker):
+    # make sure that we don't open a password prompt if password is set
+    # this would let the test fail with a timeout
     f = SSHFileSystem(
         host=ssh_server["host"],
         port=ssh_server["port"],
+        # see config in tests/docker-compose.yml, can't use environment variable here
+        # because it is not passed to the test process
         user="user",
         password="password",
     )
