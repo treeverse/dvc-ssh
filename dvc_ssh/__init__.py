@@ -86,7 +86,7 @@ class SSHFileSystem(FileSystem):
         if login_info.get("client_keys") or login_info.get("passphrase") is not None:
             preferred_auth.append("publickey")
         if login_info.get("password") is not None:
-            preferred_auth.extend(("password", "keyboard-interactive"))
+            preferred_auth.extend(("keyboard-interactive", "password"))
         if preferred_auth:
             login_info["preferred_auth"] = preferred_auth
 
