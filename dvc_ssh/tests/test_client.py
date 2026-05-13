@@ -1,10 +1,5 @@
-from types import SimpleNamespace
-
-import pytest
-
 import dvc_ssh.client
 from dvc_ssh import SSHFileSystem
-from dvc_ssh.client import InteractiveSSHClient
 from dvc_ssh.tests.cloud import TEST_SSH_USER
 
 
