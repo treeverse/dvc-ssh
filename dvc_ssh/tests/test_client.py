@@ -19,5 +19,5 @@ def test_password_auth_uses_configured_password(ssh_server, monkeypatch, tmp_pat
         password="password",
     )
 
-    assert fs.fs_args["preferred_auth"] == ["password", "keyboard-interactive"]
+    assert fs.fs_args["preferred_auth"] == ["keyboard-interactive", "password"]
     assert fs.exists("/tmp")

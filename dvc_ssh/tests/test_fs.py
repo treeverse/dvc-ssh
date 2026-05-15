@@ -45,15 +45,15 @@ def test_init():
     assert fs.fs_args["passphrase"] == "yyy"
     assert fs.fs_args["preferred_auth"] == [
         "publickey",
-        "password",
         "keyboard-interactive",
+        "password",
     ]
 
 
 @pytest.mark.parametrize(
     "option,expected_auth",
     [
-        ("password", ["password", "keyboard-interactive"]),
+        ("password", ["keyboard-interactive", "password"]),
         ("passphrase", ["publickey"]),
     ],
 )
@@ -80,7 +80,7 @@ def test_passphrase(mocker, password, passphrase):
     if passphrase is not None:
         expected_preferred_auth.append("publickey")
     if password is not None:
-        expected_preferred_auth.extend(("password", "keyboard-interactive"))
+        expected_preferred_auth.extend(("keyboard-interactive", "password"))
 
     assert connect.call_args[1].get("preferred_auth") == (
         expected_preferred_auth or None
@@ -120,12 +120,12 @@ def test_ssh_keyfile(config, expected_keyfile):
         ({"host": "example.com"}, None),
         (
             {"host": "example.com", "password": "secret"},
-            ["password", "keyboard-interactive"],
+            ["keyboard-interactive", "password"],
         ),
         ({"host": "example.com", "keyfile": "id_test"}, ["publickey"]),
         (
             {"host": "example.com", "keyfile": "id_test", "password": "secret"},
-            ["publickey", "password", "keyboard-interactive"],
+            ["publickey", "keyboard-interactive", "password"],
         ),
     ],
 )
