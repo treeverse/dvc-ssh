@@ -79,6 +79,17 @@ class SSHFileSystem(FileSystem):
         if keyfile := config.get("keyfile"):
             login_info["client_keys"] = [os.path.expanduser(keyfile)]
 
+        # Limit auth attempts to methods backed by configured credentials.
+        # This avoids prompting for unrelated default keys while preserving
+        # keyboard-interactive fallback for password-based logins.
+        preferred_auth = []
+        if login_info.get("client_keys") or login_info.get("passphrase") is not None:
+            preferred_auth.append("publickey")
+        if login_info.get("password") is not None:
+            preferred_auth.extend(("keyboard-interactive", "password"))
+        if preferred_auth:
+            login_info["preferred_auth"] = preferred_auth
+
         login_info["timeout"] = config.get("timeout", 1800)
 
         # These two settings fine tune the asyncssh to use the

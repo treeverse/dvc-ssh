@@ -43,14 +43,26 @@ def test_init():
     assert fs.fs_args["port"] == "1234"
     assert fs.fs_args["password"] == "xxx"
     assert fs.fs_args["passphrase"] == "yyy"
+    assert fs.fs_args["preferred_auth"] == [
+        "publickey",
+        "keyboard-interactive",
+        "password",
+    ]
 
 
-@pytest.mark.parametrize("option", ("password", "passphrase"))
-def test_ssh_ask_password(mocker, option):
+@pytest.mark.parametrize(
+    "option,expected_auth",
+    [
+        ("password", ["keyboard-interactive", "password"]),
+        ("passphrase", ["publickey"]),
+    ],
+)
+def test_ssh_ask_password(mocker, option, expected_auth):
     mocker.patch("dvc_ssh.ask_password", return_value="fish")
     args = {f"ask_{option}": True}
     fs = SSHFileSystem(user="test", host="2.2.2.2", **args)
     assert fs.fs_args[option] == "fish"
+    assert fs.fs_args["preferred_auth"] == expected_auth
 
 
 @pytest.mark.parametrize("password", [None, "foo"])
@@ -63,6 +75,16 @@ def test_passphrase(mocker, password, passphrase):
 
     assert connect.call_args[1]["password"] == password
     assert connect.call_args[1]["passphrase"] == passphrase
+
+    expected_preferred_auth = []
+    if passphrase is not None:
+        expected_preferred_auth.append("publickey")
+    if password is not None:
+        expected_preferred_auth.extend(("keyboard-interactive", "password"))
+
+    assert connect.call_args[1].get("preferred_auth") == (
+        expected_preferred_auth or None
+    )
 
 
 def test_ssh_user():
@@ -90,6 +112,26 @@ def test_ssh_keyfile(config, expected_keyfile):
         else expected_keyfile
     )
     assert fs.fs_args.get("client_keys") == expected_keyfiles
+
+
+@pytest.mark.parametrize(
+    "config,expected_preferred_auth",
+    [
+        ({"host": "example.com"}, None),
+        (
+            {"host": "example.com", "password": "secret"},
+            ["keyboard-interactive", "password"],
+        ),
+        ({"host": "example.com", "keyfile": "id_test"}, ["publickey"]),
+        (
+            {"host": "example.com", "keyfile": "id_test", "password": "secret"},
+            ["publickey", "keyboard-interactive", "password"],
+        ),
+    ],
+)
+def test_ssh_preferred_auth(config, expected_preferred_auth):
+    fs = SSHFileSystem(**config)
+    assert fs.fs_args.get("preferred_auth") == expected_preferred_auth
 
 
 @pytest.mark.parametrize(
