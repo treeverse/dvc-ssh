@@ -65,8 +65,22 @@ class SSHFileSystem(FileSystem):
         if port := config.get("port"):
             login_info["port"] = port
 
-        for option in ("password", "passphrase"):
+        # we can constrain which authentication methods are used, to avoid trying ones
+        # the user doesn't have configured, which can lead to input prompts and timeouts
+        # asyncssh: empty list is falsy, so methods are not constrained and all tried
+        login_info["preferred_auth"] = []
+
+        # non exhaustive, maps which dvc config option uses which ssh auth method
+        _option_to_auth_methods = {
+            "password": "password",
+            "passphrase": "publickey",
+        }
+
+        for option, auth_method in _option_to_auth_methods.items():
             login_info[option] = config.get(option)
+
+            if login_info[option] or config.get(f"ask_{option}"):
+                login_info["preferred_auth"].append(auth_method)
 
             if config.get(f"ask_{option}") and login_info[option] is None:
                 login_info[option] = ask_password(
